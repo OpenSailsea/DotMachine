@@ -1,0 +1,15 @@
+{
+  "containers": {
+    "1": {
+      "name": "dotmachine-1",
+      "username": "dotm-CycleBai",
+      "user_id": "41994",
+      "http_port": 4001,
+      "ssh_port": 4101,
+      "ftp_port": 4201,
+      "password": "k15O0w5PY8nV"
+    }
+  },
+  "next_id": 2,
+  "max_machines": 20
+}

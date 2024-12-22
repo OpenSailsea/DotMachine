@@ -1,0 +1,50 @@
+FROM ubuntu:22.04
+
+# 避免交互式提示
+ENV DEBIAN_FRONTEND=noninteractive
+
+# 安装基本工具
+RUN apt-get update && apt-get install -y \
+    openssh-server \
+    vsftpd \
+    nginx \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# 配置SSH
+RUN mkdir /var/run/sshd
+RUN echo 'PermitRootLogin yes' >> /etc/ssh/sshd_config
+
+# 配置vsftpd
+RUN echo "listen=YES" > /etc/vsftpd.conf \
+    && echo "local_enable=YES" >> /etc/vsftpd.conf \
+    && echo "write_enable=YES" >> /etc/vsftpd.conf \
+    && echo "chroot_local_user=YES" >> /etc/vsftpd.conf \
+    && echo "allow_writeable_chroot=YES" >> /etc/vsftpd.conf \
+    && echo "pasv_enable=YES" >> /etc/vsftpd.conf \
+    && echo "pasv_min_port=30000" >> /etc/vsftpd.conf \
+    && echo "pasv_max_port=31000" >> /etc/vsftpd.conf
+
+# 创建用户脚本
+COPY create_user.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/create_user.sh
+
+# 配置nginx
+COPY default.nginx.conf /etc/nginx/sites-available/default
+RUN mkdir -p /etc/nginx/sites-enabled && \
+    ln -sf /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default && \
+    mkdir -p /data/www && \
+    chown www-data:www-data /data/www && \
+    chmod 755 /data/www
+
+# 网站管理脚本
+COPY generate_nginx_config.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/generate_nginx_config.sh
+
+# 启动脚本
+COPY start.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/start.sh
+
+EXPOSE 22 21 80
+
+CMD ["/usr/local/bin/start.sh"]
