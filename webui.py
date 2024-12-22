@@ -60,6 +60,16 @@ def index():
     total_machines = len(config['containers'])
     machine_percentage = (total_machines / max_machines) * 100
     
+    # 计算容器剩余天数
+    expires_days = 0
+    if user_container and 'expires_at' in user_container:
+        from datetime import datetime
+        # 移除Z后缀和可能存在的微秒部分
+        expires_at_str = user_container['expires_at'].rstrip('Z').split('.')[0]
+        expires_at = datetime.strptime(expires_at_str, '%Y-%m-%dT%H:%M:%S')
+        now = datetime.utcnow()
+        expires_days = (expires_at - now).days
+    
     return render_template_string("""
         <!DOCTYPE html>
         <html>
@@ -124,6 +134,21 @@ def index():
                         <p>SSH 端口: {{ user_container.ssh_port }}</p>
                         <p>FTP 端口: {{ user_container.ftp_port }}</p>
                         <p>HTTP 端口: {{ user_container.http_port }}</p>
+                        
+                        {% if user_container.expires_at %}
+                        <div style="margin: 20px 0; padding: 15px; background-color: {% if (expires_days <= 1) %}#ffebee{% elif (expires_days <= 5) %}#fff3e0{% else %}#e8f5e9{% endif %}; border-radius: 5px; border: 1px solid #ddd;">
+                            <h3 style="margin-top: 0;">VPS 有效期</h3>
+                            <p>创建时间: {{ user_container.created_at[:10] }}</p>
+                            <p>到期时间: {{ user_container.expires_at[:10] }}</p>
+                            <p>剩余天数: {{ expires_days }} 天</p>
+                            {% if expires_days <= 5 %}
+                            <form action="/renew" method="post" style="display: inline-block;">
+                                <input type="hidden" name="container_id" value="{{ container_id }}">
+                                <button type="submit" class="button" style="background: #4CAF50;">续期 5 天</button>
+                            </form>
+                            {% endif %}
+                        </div>
+                        {% endif %}
                         
                         <h3>网站管理</h3>
                         <div class="website-list">
@@ -217,7 +242,8 @@ def index():
         user_container=user_container, 
         container_id=container_id,
         total_machines=total_machines,
-        machine_percentage=machine_percentage)
+        machine_percentage=machine_percentage,
+        expires_days=expires_days)
 
 @app.route('/login')
 def login():
@@ -333,9 +359,13 @@ def create():
         'ftp_port': BASE_FTP_PORT + container_id
     }
     config['next_id'] = container_id + 1
-    # 保存密码和初始化网站列表
+    # 保存密码、初始化网站列表和有效期
+    from datetime import datetime, timedelta
+    now = datetime.utcnow()
     config['containers'][str(container_id)]['password'] = password
     config['containers'][str(container_id)]['websites'] = []
+    config['containers'][str(container_id)]['created_at'] = now.isoformat() + 'Z'
+    config['containers'][str(container_id)]['expires_at'] = (now + timedelta(days=5)).isoformat() + 'Z'
     save_config(config)
     
     return render_template_string("""
@@ -770,6 +800,40 @@ def add_website():
         return redirect(url_for('index'))
     except Exception as e:
         return f"添加网站失败: {str(e)}", 500
+
+@app.route('/renew', methods=['POST'])
+@login_required
+def renew():
+    config = load_config()
+    container_id = request.form.get('container_id')
+    user_id = str(session['user']['id'])
+    
+    # 验证容器属于当前用户
+    container_info = config['containers'].get(container_id)
+    if not container_info or container_info.get('user_id') != user_id:
+        return "无权操作此容器", 403
+    
+    try:
+        # 更新有效期
+        from datetime import datetime, timedelta
+        # 移除Z后缀和可能存在的微秒部分
+        expires_at_str = container_info['expires_at'].rstrip('Z').split('.')[0]
+        expires_at = datetime.strptime(expires_at_str, '%Y-%m-%dT%H:%M:%S')
+        now = datetime.utcnow()
+        
+        # 如果已过期，从当前时间开始计算
+        if expires_at < now:
+            new_expires_at = now + timedelta(days=5)
+        else:
+            # 如果未过期，从原有期限开始追加
+            new_expires_at = expires_at + timedelta(days=5)
+            
+        config['containers'][container_id]['expires_at'] = new_expires_at.isoformat() + 'Z'
+        save_config(config)
+        
+        return redirect(url_for('index'))
+    except Exception as e:
+        return f"续期失败: {str(e)}", 500
 
 @app.route('/remove_website', methods=['POST'])
 @login_required

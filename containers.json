@@ -7,7 +7,9 @@
       "http_port": 4001,
       "ssh_port": 4101,
       "ftp_port": 4201,
-      "password": "k15O0w5PY8nV"
+      "password": "k15O0w5PY8nV",
+      "created_at": "2024-01-16T00:00:00Z",
+      "expires_at": "2024-12-29T23:45:36Z"
     }
   },
   "next_id": 2,
