@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}DotMachine Web UI{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/@heroicons/vue@2.0.18/dist/index.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+    <script src="/static/js/main.js" defer></script>
+    {% block head %}{% endblock %}
+</head>
+<body class="bg-gray-100">
+    <div class="min-h-screen flex">
+        <!-- 侧边栏 -->
+        <div class="bg-white w-64 shadow-lg hidden md:block">
+            <div class="p-6">
+                <h1 class="text-2xl font-bold text-gray-800">DotMachine</h1>
+            </div>
+            <nav class="mt-6">
+                <div class="px-4 space-y-2">
+                    <a href="{{ url_for('index.index_view') }}" class="block px-4 py-2 rounded-lg hover:bg-blue-50 text-gray-700 hover:text-blue-600">
+                        <span>控制面板</span>
+                    </a>
+                    {% if user_container %}
+                    <a href="{{ url_for('website.list_websites', container_id=container_id) }}" class="block px-4 py-2 rounded-lg hover:bg-blue-50 text-gray-700 hover:text-blue-600">
+                        <span>网站管理</span>
+                    </a>
+                    <a href="{{ url_for('system.dashboard', container_id=container_id) }}" class="block px-4 py-2 rounded-lg hover:bg-blue-50 text-gray-700 hover:text-blue-600">
+                        <span>系统管理</span>
+                    </a>
+                    {% endif %}
+                </div>
+            </nav>
+        </div>
+
+        <!-- 主内容区 -->
+        <div class="flex-1">
+            <!-- 顶部导航栏 -->
+            <header class="bg-white shadow-sm">
+                <div class="flex justify-between items-center px-6 py-4">
+                    <button class="md:hidden text-gray-600" onclick="toggleSidebar()">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                    </button>
+                    {% if user %}
+                    <div class="flex items-center space-x-4">
+                        <span class="text-gray-700">{{ user.username }}</span>
+                        <a href="/logout" class="text-sm px-4 py-2 rounded bg-gray-100 hover:bg-gray-200 text-gray-700">退出登录</a>
+                    </div>
+                    {% endif %}
+                </div>
+            </header>
+
+            <!-- 移动端侧边栏 -->
+            <div id="mobile-sidebar" class="fixed inset-0 z-40 hidden">
+                <div class="fixed inset-0 bg-black opacity-50"></div>
+                <div class="fixed inset-y-0 left-0 w-64 bg-white shadow-lg">
+                    <div class="p-6 flex justify-between items-center">
+                        <h1 class="text-2xl font-bold text-gray-800">DotMachine</h1>
+                        <button onclick="toggleSidebar()" class="text-gray-600">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <nav class="mt-6">
+                        <div class="px-4 space-y-2">
+                            <a href="{{ url_for('index.index_view') }}" class="block px-4 py-2 rounded-lg hover:bg-blue-50 text-gray-700 hover:text-blue-600">
+                                <span>控制面板</span>
+                            </a>
+                            {% if user_container %}
+                            <a href="{{ url_for('website.list_websites', container_id=container_id) }}" class="block px-4 py-2 rounded-lg hover:bg-blue-50 text-gray-700 hover:text-blue-600">
+                                <span>网站管理</span>
+                            </a>
+                            <a href="{{ url_for('system.dashboard', container_id=container_id) }}" class="block px-4 py-2 rounded-lg hover:bg-blue-50 text-gray-700 hover:text-blue-600">
+                                <span>系统管理</span>
+                            </a>
+                            {% endif %}
+                        </div>
+                    </nav>
+                </div>
+            </div>
+
+            <!-- 主要内容 -->
+            <main class="p-6">
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+    </div>
+</body>
+</html>

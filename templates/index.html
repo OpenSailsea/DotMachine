@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- 系统状态卡片 -->
+<div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+    <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-semibold text-gray-800">系统状态</h2>
+        <span class="px-3 py-1 text-sm rounded-full {% if machine_stats.percentage >= 90 %}bg-red-100 text-red-800{% elif machine_stats.percentage >= 70 %}bg-yellow-100 text-yellow-800{% else %}bg-green-100 text-green-800{% endif %}">
+            {{ machine_stats.total }}/{{ machine_stats.max }}
+        </span>
+    </div>
+    <div class="progress-container bg-gray-200 rounded-full h-4 mb-2">
+        <div class="progress-bar h-full rounded-full transition-all duration-500" 
+             style="width: {{ machine_stats.percentage }}%"></div>
+    </div>
+    <p class="text-sm text-gray-600 text-center">
+        系统负载: {{ "%.1f"|format(machine_stats.percentage) }}%
+    </p>
+</div>
+
+<!-- 用户信息卡片 -->
+<div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+    <div class="flex items-center justify-between">
+        <div>
+            <h2 class="text-lg font-semibold text-gray-800 mb-4">用户信息</h2>
+            <div class="space-y-2">
+                <p class="text-gray-600">用户名: <span class="font-medium text-gray-800">{{ user.username }}</span></p>
+                <p class="text-gray-600">信任等级: 
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium
+                        {% if user.trust_level >= 3 %}
+                            bg-green-100 text-green-800
+                        {% elif user.trust_level >= 2 %}
+                            bg-blue-100 text-blue-800
+                        {% else %}
+                            bg-gray-100 text-gray-800
+                        {% endif %}">
+                        {{ user.trust_level }}
+                    </span>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if user_container %}
+<!-- VPS信息卡片 -->
+<div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+    <h2 class="text-lg font-semibold text-gray-800 mb-4">VPS 信息</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        <div class="space-y-3">
+            <p class="text-gray-600">容器名称: <span class="font-medium text-gray-800">{{ user_container.name }}</span></p>
+            <p class="text-gray-600">SSH 用户名: <span class="font-medium text-gray-800">{{ user_container.username }}</span></p>
+            <p class="text-gray-600">SSH 端口: <span class="font-medium text-gray-800">{{ user_container.ssh_port }}</span></p>
+        </div>
+        <div class="space-y-3">
+            <p class="text-gray-600">FTP 端口: <span class="font-medium text-gray-800">{{ user_container.ftp_port }}</span></p>
+            <p class="text-gray-600">HTTP 端口: <span class="font-medium text-gray-800">{{ user_container.http_port }}</span></p>
+        </div>
+    </div>
+        
+    {% if user_container.expires_at %}
+    <!-- 有效期信息 -->
+    <div class="rounded-lg p-4 mb-6 {% if expires_days <= 1 %}bg-red-50 border border-red-200{% elif expires_days <= 5 %}bg-yellow-50 border border-yellow-200{% else %}bg-green-50 border border-green-200{% endif %}"
+         data-days="{{ expires_days }}">
+        <h3 class="text-lg font-medium mb-3 {% if expires_days <= 1 %}text-red-800{% elif expires_days <= 5 %}text-yellow-800{% else %}text-green-800{% endif %}">
+            VPS 有效期
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+                <p class="text-sm font-medium text-gray-500">创建时间</p>
+                <p class="mt-1">{{ user_container.created_at }}</p>
+            </div>
+            <div>
+                <p class="text-sm font-medium text-gray-500">到期时间</p>
+                <p class="mt-1">{{ user_container.expires_at }}</p>
+            </div>
+            <div>
+                <p class="text-sm font-medium text-gray-500">剩余天数</p>
+                <p class="mt-1">{{ expires_days }} 天</p>
+            </div>
+        </div>
+        {% if expires_days <= 5 %}
+        <div class="mt-4">
+            <form action="/vps/renew" method="post">
+                <input type="hidden" name="container_id" value="{{ container_id }}">
+                <button type="submit" class="button success w-full md:w-auto">续期 5 天</button>
+            </form>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+        
+    <!-- 网站管理卡片 -->
+    <div class="bg-white rounded-xl shadow-sm p-6 mb-6" id="websites">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">网站管理</h3>
+        <div class="website-list">
+            {% if user_container.get('websites', []) %}
+            <div class="overflow-x-auto">
+                <table class="min-w-full">
+                    <thead>
+                        <tr class="bg-gray-50">
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">域名</th>
+                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for website in user_container.get('websites', []) %}
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ website }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <form action="/website/remove" method="post" class="inline">
+                                    <input type="hidden" name="container_id" value="{{ container_id }}">
+                                    <input type="hidden" name="domain" value="{{ website }}">
+                                    <button type="submit" class="text-red-600 hover:text-red-900"
+                                            onclick="return confirmAction('确定要删除此网站吗？')">删除</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-gray-500 text-center py-4">暂无网站</p>
+            {% endif %}
+            
+            <form action="/website/add" method="post" class="mt-6 space-y-4">
+                <input type="hidden" name="container_id" value="{{ container_id }}">
+                <div class="flex flex-col md:flex-row gap-4">
+                    <input type="text" name="domain" 
+                           class="flex-1 rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                           placeholder="输入域名" required 
+                           pattern="^[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?)*\.[a-zA-Z]{2,}$"
+                           title="请输入有效的域名，如example.com或sub.example.com">
+                    <button type="submit" class="button md:w-auto">添加网站</button>
+                </div>
+            </form>
+            <p class="text-sm text-gray-500 mt-2">
+                提示：添加网站后，请将域名解析到服务器IP，解析生效后即可通过域名访问。
+            </p>
+        </div>
+    </div>
+        
+    <!-- 电源管理卡片 -->
+    <div class="bg-white rounded-xl shadow-sm p-6 mb-6" id="power">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">电源管理</h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <form action="/system/power/stop" method="post">
+                <input type="hidden" name="container_id" value="{{ container_id }}">
+                <button type="submit" class="button delete w-full">关机</button>
+            </form>
+            <form action="/system/power/start" method="post">
+                <input type="hidden" name="container_id" value="{{ container_id }}">
+                <button type="submit" class="button success w-full">开机</button>
+            </form>
+            <form action="/system/power/restart" method="post">
+                <input type="hidden" name="container_id" value="{{ container_id }}">
+                <button type="submit" class="button warning w-full">重启</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 系统管理卡片 -->
+    <div class="bg-white rounded-xl shadow-sm p-6 mb-6" id="system">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">系统管理</h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <form action="/system/reset_password" method="post">
+                <input type="hidden" name="container_id" value="{{ container_id }}">
+                <button type="submit" class="button w-full">重置密码</button>
+            </form>
+            <form action="/system/reset" method="post">
+                <input type="hidden" name="container_id" value="{{ container_id }}">
+                <button type="submit" class="button warning w-full" 
+                        onclick="return confirmAction('确定要重置系统吗？这将清除所有数据！')">重置系统</button>
+            </form>
+            <form action="/vps/remove" method="post">
+                <input type="hidden" name="container_id" value="{{ container_id }}">
+                <button type="submit" class="button delete w-full" 
+                        onclick="return confirmAction('确定要删除此 VPS 吗？')">删除 VPS</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% else %}
+<!-- 创建VPS卡片 -->
+<div class="bg-white rounded-xl shadow-sm p-6">
+    <h2 class="text-lg font-semibold text-gray-800 mb-4">创建 VPS</h2>
+    <p class="text-gray-600 mb-6">您还没有创建 VPS</p>
+    <form action="/vps/create" method="post" class="space-y-4">
+        <div class="w-full md:w-1/2">
+            <select name="type" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                <option value="base">基础版</option>
+                <option value="php">PHP 版</option>
+                <option value="python">Python 版</option>
+            </select>
+        </div>
+        <button type="submit" class="button w-full md:w-auto">创建 VPS</button>
+    </form>
+</div>
+{% endif %}
+{% endblock %}

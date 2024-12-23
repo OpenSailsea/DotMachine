@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}VPS 创建成功 - DotMachine{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="bg-white shadow rounded-lg p-6">
+        <div class="mb-6">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <svg class="h-8 w-8 text-green-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                    </svg>
+                </div>
+                <div class="ml-4">
+                    <h1 class="text-2xl font-bold text-gray-900">VPS 创建成功！</h1>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-blue-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm text-blue-700">
+                        请立即保存以下登录信息！这是显示密码的唯一机会。
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-gray-50 rounded-lg p-6 mb-6">
+            <h2 class="text-lg font-semibold mb-4">登录信息</h2>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">用户名</label>
+                    <div class="mt-1 p-3 bg-white border border-gray-300 rounded-md font-mono">
+                        {{ username }}
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">密码</label>
+                    <div class="mt-1 p-3 bg-white border border-gray-300 rounded-md font-mono">
+                        {{ password }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-gray-50 rounded-lg p-6 mb-6">
+            <h2 class="text-lg font-semibold mb-4">端口信息</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">SSH 端口</label>
+                    <div class="mt-1 p-3 bg-white border border-gray-300 rounded-md font-mono">
+                        {{ ssh_port }}
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">FTP 端口</label>
+                    <div class="mt-1 p-3 bg-white border border-gray-300 rounded-md font-mono">
+                        {{ ftp_port }}
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">HTTP 端口</label>
+                    <div class="mt-1 p-3 bg-white border border-gray-300 rounded-md font-mono">
+                        {{ http_port }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex justify-end">
+            <a href="{{ url_for('index.index_view') }}" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700">
+                进入控制面板
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
