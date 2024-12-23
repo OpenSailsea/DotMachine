@@ -42,18 +42,16 @@ class DockerManager:
 
     def create_container(self, container_id: int, username: str, password: str, container_type: str = 'base', user_id: str = None) -> Tuple[str, int]:
         """创建新容器,返回(容器名称, 实际使用的ID)"""
-        while True:
-            container_name = get_container_name(container_id)
-            # 检查容器是否已存在
-            try:
-                subprocess.run(['sudo', 'docker', 'inspect', container_name], 
-                             check=True, capture_output=True)
-                # 容器已存在,尝试下一个ID
-                container_id += 1
-                continue
-            except subprocess.CalledProcessError:
-                # 容器不存在,可以使用这个名称
-                break
+        container_name = get_container_name(container_id)
+        
+        # 检查容器是否已存在
+        try:
+            subprocess.run(['sudo', 'docker', 'inspect', container_name], 
+                         check=True, capture_output=True)
+            # 如果容器存在，先删除它
+            self.remove_container(container_name)
+        except subprocess.CalledProcessError:
+            pass  # 容器不存在，可以直接创建
                 
         image_name = f'dotmachine-{container_type}'
         ports = get_container_ports(container_id)
@@ -195,7 +193,7 @@ class ContainerManager:
         config = load_config()
         
         # 检查用户是否已有容器
-        for info in config['containers'].values():
+        for cid, info in config['containers'].items():
             if info.get('user_id') == user_id:
                 raise ValueError("用户已经创建了一个实例")
                 
@@ -203,9 +201,20 @@ class ContainerManager:
         if len(config['containers']) >= MAX_MACHINES:
             raise ValueError(f"系统已达到最大实例数量限制({MAX_MACHINES})")
 
-        # 生成容器信息
-        container_id = config['next_id']
-        original_id = container_id  # 保存原始ID用于后续更新
+        # 查找可用的container_id
+        container_id = None
+        # 先检查已有的配置
+        for i in range(MAX_MACHINES):
+            # 检查是否有对应的数据目录
+            data_dir = os.path.join('data/containers', str(i))
+            if os.path.exists(data_dir) and str(i) not in config['containers']:
+                container_id = i
+                break
+                
+        # 如果没有找到可用的已存在目录，使用next_id
+        if container_id is None:
+            container_id = config['next_id']
+            
         from utils import generate_password
         password = generate_password()
         
