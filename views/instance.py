@@ -60,7 +60,7 @@ def renew():
     """续期实例"""
     try:
         from datetime import datetime, timedelta
-        from utils import load_config, save_config, calculate_expiry
+        from utils import load_config, save_config, calculate_expiry, get_remaining_time
         
         container_id = request.form.get('container_id')
         user_id = str(session['user']['id'])
@@ -71,6 +71,11 @@ def renew():
             
         container_info = config['containers'][container_id]
         
+        # 检查是否在可续期时间内
+        remaining = get_remaining_time(container_info['expires_at'])
+        if remaining['total_hours'] > 24:
+            return "只能在过期前24小时内续期", 403
+            
         # 计算新的过期时间
         expires_at_str = container_info['expires_at'].rstrip('Z').split('.')[0]
         expires_at = datetime.strptime(expires_at_str, '%Y-%m-%dT%H:%M:%S')

@@ -16,7 +16,7 @@ chmod 775 "$SITE_ROOT"
 
 # 创建默认首页
 if [ ! -f "$SITE_ROOT/index.html" ]; then
-    cat > "$SITE_ROOT/index.html" <<EOF
+    cat > "$SITE_ROOT/index.html" << EOF
 <!DOCTYPE html>
 <html>
 <head>
@@ -31,7 +31,7 @@ EOF
 fi
 
 # 生成容器内的nginx配置
-cat > "/etc/nginx/sites-enabled/$DOMAIN.conf" <<EOF
+cat > "/etc/nginx/sites-enabled/$DOMAIN.conf" << EOF
 server {
     listen 80;
     server_name localhost;
@@ -50,21 +50,21 @@ server {
 EOF
 
 # 生成主机上的nginx配置
-CONTAINER_NAME=\$(hostname)
-CONTAINER_PORT=\$(docker port \$CONTAINER_NAME 80 2>/dev/null | cut -d ':' -f 2)
+CONTAINER_NAME=$(hostname)
+CONTAINER_PORT=$(docker port "$CONTAINER_NAME" 80 2>/dev/null | cut -d ':' -f 2)
 
-if [ ! -z "\$CONTAINER_PORT" ]; then
+if [ ! -z "$CONTAINER_PORT" ]; then
     # 在主机上创建nginx配置目录
     mkdir -p /etc/nginx/vhost.d
 
     # 生成反向代理配置
-    cat > "/etc/nginx/vhost.d/$DOMAIN.conf" <<EOF
+    cat > "/etc/nginx/vhost.d/$DOMAIN.conf" << EOF
 server {
     listen 80;
     server_name $DOMAIN;
 
     location / {
-        proxy_pass http://127.0.0.1:\$CONTAINER_PORT;
+        proxy_pass http://127.0.0.1:$CONTAINER_PORT;
         proxy_set_header Host \$host;
         proxy_set_header X-Real-IP \$remote_addr;
         proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;

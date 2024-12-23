@@ -91,9 +91,16 @@ def calculate_machine_stats(config: Dict) -> Dict:
         'percentage': (total_machines / MAX_MACHINES) * 100
     }
 
-def get_remaining_days(expires_at: str) -> int:
-    """计算剩余天数"""
+def get_remaining_time(expires_at: str) -> Dict[str, int]:
+    """计算剩余时间，返回天数和小时数"""
     expires_at_str = expires_at.rstrip('Z').split('.')[0]
     expires_at = datetime.strptime(expires_at_str, '%Y-%m-%dT%H:%M:%S')
     now = datetime.utcnow()
-    return (expires_at - now).days
+    time_delta = expires_at - now
+    days = time_delta.days
+    hours = time_delta.seconds // 3600
+    return {
+        'days': days,
+        'hours': hours,
+        'total_hours': days * 24 + hours
+    }
