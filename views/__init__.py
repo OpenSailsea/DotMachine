@@ -1,17 +1,15 @@
 def init_views(app):
     """初始化所有视图"""
-    # 导入视图函数
-    from . import instance as instance_views
-    from . import website as website_views
-    from . import system as system_views
-    from . import index as index_views
-    from . import terminal as terminal_views
-    from . import files as files_views
+    # 延迟导入视图函数，避免循环导入
+    def register_blueprint(module_name, blueprint_name):
+        module = __import__(f'views.{module_name}', fromlist=[blueprint_name])
+        blueprint = getattr(module, blueprint_name)
+        app.register_blueprint(blueprint)
     
-    # 注册蓝图
-    app.register_blueprint(instance_views.instance)
-    app.register_blueprint(website_views.website)
-    app.register_blueprint(system_views.system)
-    app.register_blueprint(index_views.index)
-    app.register_blueprint(terminal_views.terminal)
-    app.register_blueprint(files_views.files)
+    # 按顺序注册蓝图
+    register_blueprint('index', 'index')
+    register_blueprint('instance', 'instance')
+    register_blueprint('website', 'website')
+    register_blueprint('system', 'system')
+    register_blueprint('terminal', 'terminal')
+    register_blueprint('files', 'files')

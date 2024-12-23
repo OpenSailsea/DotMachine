@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, session, request
 from flask_socketio import emit, join_room, leave_room
 from auth import login_required
-from app import socketio
+from extensions import socketio
 from utils import validate_user_container, get_container_name, load_config
 from models import DockerManager
 import pty
