@@ -74,11 +74,20 @@ class DockerManager:
             with open('.bashecho', 'r') as f:
                 bashecho_content = f.read()
             
-            # 创建临时文件并添加到.bashrc
-            subprocess.run(['sudo', 'docker', 'exec', container_name, 'sh', '-c', f'echo "{bashecho_content}" > /tmp/bashecho'], check=True)
-            subprocess.run(['sudo', 'docker', 'exec', container_name, 'sh', '-c', f'echo "\n# DotMachine welcome message" >> /home/{username}/.bashrc'], check=True)
-            subprocess.run(['sudo', 'docker', 'exec', container_name, 'sh', '-c', f'cat /tmp/bashecho >> /home/{username}/.bashrc'], check=True)
+            # 将bashecho内容写入临时文件
+            with open('/tmp/container_bashecho', 'w') as f:
+                f.write(bashecho_content)
+            
+            # 复制文件到容器
+            subprocess.run(['sudo', 'docker', 'cp', '/tmp/container_bashecho', f'{container_name}:/tmp/bashecho'], check=True)
+            
+            # 添加到.bashrc
+            subprocess.run(['sudo', 'docker', 'exec', container_name, 'bash', '-c', 'echo "\n# DotMachine welcome message" >> /home/$CONTAINER_USER/.bashrc'], check=True)
+            subprocess.run(['sudo', 'docker', 'exec', container_name, 'bash', '-c', 'cat /tmp/bashecho >> /home/$CONTAINER_USER/.bashrc'], check=True)
             subprocess.run(['sudo', 'docker', 'exec', container_name, 'rm', '/tmp/bashecho'], check=True)
+            
+            # 清理本地临时文件
+            os.remove('/tmp/container_bashecho')
         
         return container_name, container_id
 
