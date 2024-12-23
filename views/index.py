@@ -1,6 +1,6 @@
 from flask import render_template, session
 from auth import login_required
-from utils import load_config, calculate_machine_stats, get_remaining_days, format_container_info
+from utils import load_config, calculate_machine_stats, get_remaining_time, format_container_info
 
 from flask import Blueprint
 
@@ -24,10 +24,10 @@ def index_view():
         # 计算机器统计信息
         machine_stats = calculate_machine_stats(config)
         
-        # 计算容器剩余天数
-        expires_days = 0
+        # 计算容器剩余时间
+        remaining_time = {'days': 0, 'hours': 0, 'total_hours': 0}
         if user_container and 'expires_at' in user_container:
-            expires_days = get_remaining_days(user_container['expires_at'])
+            remaining_time = get_remaining_time(user_container['expires_at'])
         
         # 格式化容器信息
         if user_container:
@@ -38,4 +38,4 @@ def index_view():
             user_container=user_container, 
             container_id=container_id,
             machine_stats=machine_stats,
-            expires_days=expires_days)
+            remaining_time=remaining_time)
