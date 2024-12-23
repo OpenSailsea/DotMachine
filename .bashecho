@@ -1,13 +1,4 @@
-cat << EOF
-    ____        _     __  __            _     _            
-    |  _ \  ___ | |_  |  \/  | __ _  ___| |__ (_)_ __   ___ 
-    | | | |/ _ \| __| | |\/| |/ _` |/ __| '_ \| | '_ \ / _ \
-    | |_| | (_) | |_  | |  | | (_| | (__| | | | | | | |  __/
-    |____/ \___/ \__| |_|  |_|\__,_|\___|_| |_|_|_| |_|\___|
-
-EOF
-
-echo "欢迎使用DotMachine 实例服务！"
+echo "欢迎使用 DotMachine 实例服务！"
 echo "系统信息:"
 echo "  - 操作系统: $(cat /etc/os-release | grep PRETTY_NAME | cut -d'"' -f2)"
 echo "  - 内核版本: $(uname -r)"
@@ -19,3 +10,14 @@ echo "使用说明:"
 echo "  1. 网站目录: /data/www"
 echo "  2. 日志目录: /data/logs"
 echo "  3. 备份目录: /data/backup"
+echo ""
+echo ""
+echo "注意:"
+echo "本服务完全免费, 公益提供, 如果你付费购买了此实例, 请立即, 直接的要求退款."
+echo "本服务仅面向 Linux Do 站点内 2 级以上用户, 如果你不是通过正规渠道注册此实例, 请立即联系我们."
+echo ""
+echo "联系我们"
+echo "DotMachine 是由 OpenSailsea 经营的服务, 要联系我们, 请通过如下方式之一:"
+echo "电邮 - dotmachine@mail.ezv.me"
+echo "如果您拥有 Telegram 账户:"
+echo "负责人 @cyclebai_bot"

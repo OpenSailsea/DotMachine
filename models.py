@@ -1,8 +1,8 @@
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Any
 from datetime import datetime
 import subprocess
 import json
-from config import CONTAINER_LIMITS
+from config import CONTAINER_LIMITS, MAX_MACHINES
 import random
 import os
 from utils import (
@@ -14,6 +14,26 @@ from utils import (
     save_config,
     validate_user_container
 )
+
+class ContainerWrapper:
+    """Docker容器包装类,提供与docker-py兼容的接口"""
+    def __init__(self, name: str):
+        self.name = name
+        
+    def exec_run(self, cmd: List[str], **kwargs) -> Any:
+        """执行容器命令"""
+        full_cmd = ['sudo', 'docker', 'exec', self.name] + cmd
+        try:
+            result = subprocess.run(full_cmd, check=True, capture_output=True)
+            return type('ExecResult', (), {
+                'exit_code': result.returncode,
+                'output': result.stdout
+            })
+        except subprocess.CalledProcessError as e:
+            return type('ExecResult', (), {
+                'exit_code': e.returncode,
+                'output': e.stderr
+            })
 
 class DockerManager:
     """Docker容器管理类"""
@@ -99,11 +119,11 @@ class DockerManager:
         except subprocess.CalledProcessError:
             pass
 
-    def get_container(self, container_name: str) -> Optional[str]:
+    def get_container(self, container_name: str) -> Optional[ContainerWrapper]:
         """获取容器实例"""
         try:
             subprocess.run(['sudo', 'docker', 'inspect', container_name], check=True, capture_output=True)
-            return container_name
+            return ContainerWrapper(container_name)
         except subprocess.CalledProcessError:
             return None
             
@@ -178,6 +198,10 @@ class ContainerManager:
         for info in config['containers'].values():
             if info.get('user_id') == user_id:
                 raise ValueError("用户已经创建了一个实例")
+                
+        # 检查总机器数量是否达到上限
+        if len(config['containers']) >= MAX_MACHINES:
+            raise ValueError(f"系统已达到最大实例数量限制({MAX_MACHINES})")
 
         # 生成容器信息
         container_id = config['next_id']
