@@ -4,9 +4,10 @@ from config import SECRET_KEY, DEBUG, HOST, PORT
 from auth import init_auth_routes
 from views import init_views
 import os
+from asgiref.wsgi import WsgiToAsgi  # 用于将 WSGI 转换为 ASGI
 
 # 创建SocketIO实例
-socketio = SocketIO()
+socketio = SocketIO(async_mode="eventlet")  # 注意 async_mode 必须为 "asgi"
 
 def create_app():
     """创建并配置Flask应用"""
@@ -36,6 +37,9 @@ def create_app():
     
     return app
 
+# 将 Flask 应用转换为 ASGI 应用
+asgi_app = WsgiToAsgi(create_app())
+
 def main():
     """主函数"""
     app = create_app()
@@ -43,3 +47,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+
