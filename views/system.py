@@ -1,7 +1,7 @@
 from flask import Blueprint, request, redirect, url_for, render_template, session, jsonify
 from flask_socketio import emit
 from auth import login_required
-from app import socketio
+from extensions import socketio
 import threading
 import time
 import subprocess
