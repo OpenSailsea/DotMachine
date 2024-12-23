@@ -1,0 +1,388 @@
+{% extends "base.html" %}
+
+{% block title %}文件管理 - DotMachine{% endblock %}
+
+{% block head %}
+{{ super() }}
+<!-- Monaco Editor -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.36.1/min/vs/loader.min.js"></script>
+<style>
+.file-list {
+    height: calc(100vh - 300px);
+    overflow-y: auto;
+}
+.file-editor {
+    height: calc(100vh - 300px);
+    display: none;
+}
+#editor {
+    width: 100%;
+    height: 100%;
+}
+.breadcrumb {
+    display: flex;
+    flex-wrap: wrap;
+    padding: 0.5rem 1rem;
+    margin-bottom: 1rem;
+    background-color: #f8f9fa;
+    border-radius: 0.25rem;
+}
+.breadcrumb-item {
+    cursor: pointer;
+    color: #3b82f6;
+}
+.breadcrumb-item:hover {
+    text-decoration: underline;
+}
+.breadcrumb-item + .breadcrumb-item::before {
+    content: "/";
+    padding: 0 0.5rem;
+    color: #6c757d;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="bg-white shadow rounded-lg p-6">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-2xl font-bold">文件管理</h1>
+            <div class="flex space-x-4">
+                <button onclick="showUploadDialog()" class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">
+                    上传文件
+                </button>
+                <button onclick="showCreateFolderDialog()" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                    新建文件夹
+                </button>
+                <a href="{{ url_for('system.dashboard', container_id=container_id) }}" class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">
+                    返回管理面板
+                </a>
+            </div>
+        </div>
+        
+        <!-- 面包屑导航 -->
+        <div class="breadcrumb mb-4" id="breadcrumb"></div>
+        
+        <!-- 文件列表 -->
+        <div class="file-list" id="file-list">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">名称</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">大小</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">权限</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">修改时间</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200" id="file-list-body"></tbody>
+            </table>
+        </div>
+        
+        <!-- 文件编辑器 -->
+        <div class="file-editor" id="file-editor">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-lg font-semibold" id="editor-filename"></h2>
+                <div class="flex space-x-4">
+                    <button onclick="saveFile()" class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">
+                        保存
+                    </button>
+                    <button onclick="closeEditor()" class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">
+                        关闭
+                    </button>
+                </div>
+            </div>
+            <div id="editor"></div>
+        </div>
+    </div>
+</div>
+
+<!-- 上传文件对话框 -->
+<div class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden" id="upload-dialog">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div class="mt-3 text-center">
+            <h3 class="text-lg leading-6 font-medium text-gray-900">上传文件</h3>
+            <div class="mt-2 px-7 py-3">
+                <input type="file" id="file-input" class="w-full">
+            </div>
+            <div class="items-center px-4 py-3">
+                <button onclick="uploadFile()" class="px-4 py-2 bg-blue-500 text-white rounded mr-2 hover:bg-blue-600">
+                    上传
+                </button>
+                <button onclick="closeUploadDialog()" class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">
+                    取消
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 新建文件夹对话框 -->
+<div class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden" id="create-folder-dialog">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div class="mt-3 text-center">
+            <h3 class="text-lg leading-6 font-medium text-gray-900">新建文件夹</h3>
+            <div class="mt-2 px-7 py-3">
+                <input type="text" id="folder-name" class="w-full px-3 py-2 border rounded" placeholder="文件夹名称">
+            </div>
+            <div class="items-center px-4 py-3">
+                <button onclick="createFolder()" class="px-4 py-2 bg-blue-500 text-white rounded mr-2 hover:bg-blue-600">
+                    创建
+                </button>
+                <button onclick="closeCreateFolderDialog()" class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">
+                    取消
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let currentPath = '/data';
+let editor = null;
+let currentFile = null;
+const containerId = '{{ container_id }}';
+
+// 初始化Monaco编辑器
+require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.36.1/min/vs' }});
+require(['vs/editor/editor.main'], function() {
+    editor = monaco.editor.create(document.getElementById('editor'), {
+        value: '',
+        language: 'plaintext',
+        theme: 'vs-dark',
+        automaticLayout: true
+    });
+});
+
+// 加载文件列表
+function loadFiles(path = '/data') {
+    currentPath = path;
+    updateBreadcrumb();
+    
+    fetch(`/files/list?container_id=${containerId}&path=${encodeURIComponent(path)}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                alert(data.error);
+                return;
+            }
+            
+            const tbody = document.getElementById('file-list-body');
+            tbody.innerHTML = '';
+            
+            data.files.forEach(file => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center">
+                            <span class="text-sm font-medium text-gray-900 ${file.type === 'd' ? 'cursor-pointer hover:text-blue-600' : ''}"
+                                  onclick="${file.type === 'd' ? `loadFiles('${path}/${file.name}')` : `openFile('${path}/${file.name}')`}">
+                                ${file.type === 'd' ? '📁 ' : '📄 '}${file.name}
+                            </span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${file.size}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${file.permissions}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${file.modified}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        ${file.type === 'f' ? `
+                            <a href="/files/download?container_id=${containerId}&path=${encodeURIComponent(path + '/' + file.name)}" 
+                               class="text-indigo-600 hover:text-indigo-900 mr-4">下载</a>
+                        ` : ''}
+                        <a href="#" onclick="deleteItem('${path}/${file.name}')" class="text-red-600 hover:text-red-900">删除</a>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        });
+}
+
+// 更新面包屑导航
+function updateBreadcrumb() {
+    const parts = currentPath.split('/').filter(p => p);
+    let html = '<span class="breadcrumb-item" onclick="loadFiles(\'/data\')">根目录</span>';
+    let path = '/data';
+    
+    parts.forEach(part => {
+        path += '/' + part;
+        html += `<span class="breadcrumb-item" onclick="loadFiles('${path}')">${part}</span>`;
+    });
+    
+    document.getElementById('breadcrumb').innerHTML = html;
+}
+
+// 打开文件
+function openFile(path) {
+    fetch(`/files/read?container_id=${containerId}&path=${encodeURIComponent(path)}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                alert(data.error);
+                return;
+            }
+            
+            document.getElementById('file-list').style.display = 'none';
+            document.getElementById('file-editor').style.display = 'block';
+            document.getElementById('editor-filename').textContent = path.split('/').pop();
+            
+            currentFile = path;
+            editor.setValue(data.content);
+            
+            // 根据文件扩展名设置语言
+            const ext = path.split('.').pop().toLowerCase();
+            const langMap = {
+                'js': 'javascript',
+                'py': 'python',
+                'html': 'html',
+                'css': 'css',
+                'json': 'json',
+                'md': 'markdown',
+                'php': 'php',
+                'sh': 'shell',
+                'sql': 'sql',
+                'xml': 'xml',
+                'yaml': 'yaml',
+                'yml': 'yaml'
+            };
+            editor.setModelLanguage(editor.getModel(), langMap[ext] || 'plaintext');
+        });
+}
+
+// 保存文件
+function saveFile() {
+    const formData = new FormData();
+    formData.append('container_id', containerId);
+    formData.append('path', currentFile);
+    formData.append('content', editor.getValue());
+    
+    fetch('/files/write', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            alert(data.error);
+        } else {
+            alert('保存成功');
+        }
+    });
+}
+
+// 关闭编辑器
+function closeEditor() {
+    document.getElementById('file-list').style.display = 'block';
+    document.getElementById('file-editor').style.display = 'none';
+    currentFile = null;
+}
+
+// 显示上传对话框
+function showUploadDialog() {
+    document.getElementById('upload-dialog').classList.remove('hidden');
+}
+
+// 关闭上传对话框
+function closeUploadDialog() {
+    document.getElementById('upload-dialog').classList.add('hidden');
+    document.getElementById('file-input').value = '';
+}
+
+// 上传文件
+function uploadFile() {
+    const fileInput = document.getElementById('file-input');
+    if (!fileInput.files.length) {
+        alert('请选择文件');
+        return;
+    }
+    
+    const formData = new FormData();
+    formData.append('container_id', containerId);
+    formData.append('path', currentPath);
+    formData.append('file', fileInput.files[0]);
+    
+    fetch('/files/upload', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            alert(data.error);
+        } else {
+            closeUploadDialog();
+            loadFiles(currentPath);
+        }
+    });
+}
+
+// 显示新建文件夹对话框
+function showCreateFolderDialog() {
+    document.getElementById('create-folder-dialog').classList.remove('hidden');
+}
+
+// 关闭新建文件夹对话框
+function closeCreateFolderDialog() {
+    document.getElementById('create-folder-dialog').classList.add('hidden');
+    document.getElementById('folder-name').value = '';
+}
+
+// 创建文件夹
+function createFolder() {
+    const name = document.getElementById('folder-name').value.trim();
+    if (!name) {
+        alert('请输入文件夹名称');
+        return;
+    }
+    
+    const formData = new FormData();
+    formData.append('container_id', containerId);
+    formData.append('path', currentPath);
+    formData.append('name', name);
+    
+    fetch('/files/create_folder', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            alert(data.error);
+        } else {
+            closeCreateFolderDialog();
+            loadFiles(currentPath);
+        }
+    });
+}
+
+// 删除文件或文件夹
+function deleteItem(path) {
+    if (!confirm('确定要删除吗？此操作不可恢复！')) {
+        return;
+    }
+    
+    const formData = new FormData();
+    formData.append('container_id', containerId);
+    formData.append('path', path);
+    
+    fetch('/files/delete', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            alert(data.error);
+        } else {
+            loadFiles(currentPath);
+        }
+    });
+}
+
+// 初始化加载
+document.addEventListener('DOMContentLoaded', function() {
+    loadFiles();
+});
+</script>
+{% endblock %}

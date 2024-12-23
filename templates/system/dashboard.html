@@ -2,10 +2,82 @@
 
 {% block title %}系统管理 - DotMachine{% endblock %}
 
+{% block head %}
+{{ super() }}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+{% endblock %}
+
 {% block content %}
 <div class="container">
     <div class="bg-white shadow rounded-lg p-6">
         <h1 class="text-2xl font-bold mb-6">系统管理</h1>
+        
+        <!-- 快捷操作 -->
+        <!--
+        <div class="mb-8">
+            <h2 class="text-lg font-semibold mb-4">快捷操作</h2>
+            <div class="flex space-x-4">
+                <a href="{{ url_for('terminal.terminal_view', container_id=container_id) }}" 
+                   class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700">
+                    <svg class="h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M2 4a2 2 0 012-2h12a2 2 0 012 2v12a2 2 0 01-2 2H4a2 2 0 01-2-2V4zm2 2v2h2V6H4zm0 4v2h2v-2H4zm0 4v2h8v-2H4zm10-8v6h2V6h-2z"/>
+                    </svg>
+                    在线终端
+                </a>
+                <a href="{{ url_for('files.files_view', container_id=container_id) }}" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700">
+                    <svg class="h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M2 6a2 2 0 012-2h12a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zm2 0v8h12V6H4z" clip-rule="evenodd"/>
+                        <path d="M6 8h8v2H6V8z"/>
+                    </svg>
+                    文件管理
+                </a>
+            </div>
+        </div>
+        -->
+        
+        <!-- 系统状态 -->
+        <div class="mb-8">
+            <h2 class="text-lg font-semibold mb-4">系统状态</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <!-- CPU使用率 -->
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <div class="text-sm text-gray-500 mb-1">CPU使用率</div>
+                    <div class="flex items-center">
+                        <div class="text-xl font-semibold" id="cpu-usage">0</div>
+                        <div class="ml-1">%</div>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2.5 mt-2">
+                        <div class="bg-blue-600 h-2.5 rounded-full" id="cpu-progress" style="width: 0%"></div>
+                    </div>
+                </div>
+                
+                <!-- 内存使用率 -->
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <div class="text-sm text-gray-500 mb-1">内存使用</div>
+                    <div class="flex items-center">
+                        <div class="text-xl font-semibold" id="memory-usage">0</div>
+                        <div class="ml-1">MB</div>
+                        <div class="text-gray-500 ml-1">/ <span id="memory-total">0</span> MB</div>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2.5 mt-2">
+                        <div class="bg-green-600 h-2.5 rounded-full" id="memory-progress" style="width: 0%"></div>
+                    </div>
+                </div>
+                
+                <!-- 磁盘使用率 -->
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <div class="text-sm text-gray-500 mb-1">磁盘使用</div>
+                    <div class="flex items-center">
+                        <div class="text-xl font-semibold" id="disk-usage">0</div>
+                        <div class="ml-1">GB</div>
+                        <div class="text-gray-500 ml-1">/ <span id="disk-total">0</span> GB</div>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2.5 mt-2">
+                        <div class="bg-yellow-600 h-2.5 rounded-full" id="disk-progress" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
         
         <!-- 电源管理 -->
         <div class="mb-8">
@@ -71,4 +143,55 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const containerId = '{{ container_id }}';
+    
+    // 连接WebSocket
+    const socket = io();
+    
+    socket.on('connect', function() {
+        console.log('Connected to WebSocket');
+        socket.emit('join', {container_id: containerId});
+    });
+    
+    socket.on('join', function(data) {
+        console.log('Joined room:', data);
+    });
+    
+    // 处理状态更新
+    socket.on(`status_update_${containerId}`, function(data) {
+        if (data.status === 'running') {
+            // 更新CPU使用率
+            const cpuUsage = data.cpu_usage.toFixed(1);
+            document.getElementById('cpu-usage').textContent = cpuUsage;
+            document.getElementById('cpu-progress').style.width = `${cpuUsage}%`;
+            
+            // 更新内存使用率
+            const memoryUsageMB = (data.memory_usage / 1024 / 1024).toFixed(1);
+            const memoryTotalMB = (data.memory_limit / 1024 / 1024).toFixed(1);
+            const memoryPercent = (data.memory_usage / data.memory_limit * 100).toFixed(1);
+            document.getElementById('memory-usage').textContent = memoryUsageMB;
+            document.getElementById('memory-total').textContent = memoryTotalMB;
+            document.getElementById('memory-progress').style.width = `${memoryPercent}%`;
+            
+            // 更新磁盘使用率
+            const diskUsageGB = (data.disk_usage / 1024 / 1024 / 1024).toFixed(1);
+            const diskTotalGB = (data.disk_limit / 1024 / 1024 / 1024).toFixed(1);
+            const diskPercent = (data.disk_usage / data.disk_limit * 100).toFixed(1);
+            document.getElementById('disk-usage').textContent = diskUsageGB;
+            document.getElementById('disk-total').textContent = diskTotalGB;
+            document.getElementById('disk-progress').style.width = `${diskPercent}%`;
+        }
+    });
+    
+    // 断开连接时的处理
+    socket.on('disconnect', function() {
+        console.log('Disconnected from WebSocket');
+    });
+});
+</script>
 {% endblock %}

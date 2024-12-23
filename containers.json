@@ -1,23 +1,20 @@
 {
   "containers": {
-    "3": {
-      "name": "dotm-0003",
+    "1": {
+      "name": "dotm-0001",
       "username": "dotm-CycleBai",
-      "password": "s6zuwIS41Dg4",
+      "password": "8MN8q6kX1qG2",
       "user_id": "41994",
       "type": "base",
-      "http_port": 9003,
-      "ssh_port": 2203,
-      "ftp_port": 2103,
+      "http_port": 9001,
+      "ssh_port": 2201,
+      "ftp_port": 2101,
       "websites": [],
-      "created_at": "2024-12-23T02:32:04.752935Z",
-      "expires_at": "2024-12-28T02:32:04.752953Z",
-      "ports": [
-        5196
-      ]
+      "created_at": "2024-12-23T03:57:17.354414Z",
+      "expires_at": "2024-12-28T03:57:17.354423Z"
     }
   },
-  "next_id": 4,
+  "next_id": 2,
   "max_machines": 20,
   "used_ports": []
 }

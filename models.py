@@ -1,6 +1,7 @@
 from typing import Dict, List, Optional, Tuple
 from datetime import datetime
 import subprocess
+import json
 from config import CONTAINER_LIMITS
 import random
 import os
@@ -84,6 +85,64 @@ class DockerManager:
             return container_name
         except subprocess.CalledProcessError:
             return None
+            
+    def get_container_status(self, container_name: str) -> Dict:
+        """获取容器状态信息"""
+        try:
+            # 获取容器运行状态
+            inspect_result = subprocess.run(
+                ['sudo', 'docker', 'inspect', container_name],
+                check=True, capture_output=True, text=True
+            )
+            container_info = json.loads(inspect_result.stdout)[0]
+            running = container_info['State']['Running']
+            
+            if not running:
+                return {
+                    'status': 'stopped',
+                    'cpu_usage': 0,
+                    'memory_usage': 0,
+                    'memory_limit': 0,
+                    'disk_usage': 0,
+                    'disk_limit': 0
+                }
+            
+            # 获取容器统计信息
+            stats_result = subprocess.run(
+                ['sudo', 'docker', 'stats', container_name, '--no-stream', '--format', '{{json .}}'],
+                check=True, capture_output=True, text=True
+            )
+            stats = json.loads(stats_result.stdout)
+            
+            # 获取容器磁盘使用情况
+            df_result = subprocess.run(
+                ['sudo', 'docker', 'exec', container_name, 'df', '-B1', '/data'],
+                check=True, capture_output=True, text=True
+            )
+            df_lines = df_result.stdout.strip().split('\n')
+            disk_info = df_lines[1].split()
+            disk_total = int(disk_info[1])
+            disk_used = int(disk_info[2])
+            
+            return {
+                'status': 'running',
+                'cpu_usage': float(stats['CPUPerc'].strip('%')),
+                'memory_usage': int(stats['MemUsage'].split('/')[0].strip().replace('MiB', '')) * 1024 * 1024,
+                'memory_limit': int(stats['MemUsage'].split('/')[1].strip().replace('MiB', '')) * 1024 * 1024,
+                'disk_usage': disk_used,
+                'disk_limit': disk_total
+            }
+            
+        except subprocess.CalledProcessError as e:
+            return {
+                'status': 'error',
+                'error': str(e)
+            }
+        except Exception as e:
+            return {
+                'status': 'error',
+                'error': f'获取容器状态失败: {str(e)}'
+            }
 
 class ContainerManager:
     """容器管理类"""
@@ -97,7 +156,7 @@ class ContainerManager:
         # 检查用户是否已有容器
         for info in config['containers'].values():
             if info.get('user_id') == user_id:
-                raise ValueError("用户已经创建了一个VPS")
+                raise ValueError("用户已经创建了一个实例")
 
         # 生成容器信息
         container_id = config['next_id']

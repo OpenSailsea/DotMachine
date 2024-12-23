@@ -3,9 +3,13 @@
 # 安装依赖
 pip install -r requirements.txt
 
+# 安装eventlet
+pip install eventlet
+
 # 启动 gunicorn
-gunicorn webui:app \
-    --workers 3 \
+gunicorn app:socketio \
+    --worker-class eventlet \
+    --workers 1 \
     --bind 0.0.0.0:8181 \
     --timeout 120 \
     --access-logfile - \

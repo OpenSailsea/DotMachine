@@ -1,8 +1,12 @@
 from flask import Flask
+from flask_socketio import SocketIO
 from config import SECRET_KEY, DEBUG, HOST, PORT
 from auth import init_auth_routes
 from views import init_views
 import os
+
+# 创建SocketIO实例
+socketio = SocketIO()
 
 def create_app():
     """创建并配置Flask应用"""
@@ -27,12 +31,15 @@ def create_app():
     for rule in app.url_map.iter_rules():
         print(f"{rule.endpoint}: {rule.rule}")
     
+    # 初始化SocketIO
+    socketio.init_app(app, cors_allowed_origins="*")
+    
     return app
 
 def main():
     """主函数"""
     app = create_app()
-    app.run(host=HOST, port=PORT)
+    socketio.run(app, host=HOST, port=PORT)
 
 if __name__ == '__main__':
     main()

@@ -3,13 +3,13 @@ from auth import login_required
 from models import ContainerManager
 from utils import validate_user_container
 
-vps = Blueprint('vps', __name__, url_prefix='/vps')
+instance = Blueprint('instance', __name__, url_prefix='/instance')
 container_manager = ContainerManager()
 
-@vps.route('/create', methods=['POST'])
+@instance.route('/create', methods=['POST'])
 @login_required
 def create():
-    """创建VPS"""
+    """创建实例"""
     try:
         container_type = request.form.get('type', 'base')
         user_id = str(session['user']['id'])
@@ -22,7 +22,7 @@ def create():
             container_type=container_type
         )
         
-        return render_template('vps/success.html',
+        return render_template('instance/success.html',
             username=container_info['username'],
             password=password,
             ssh_port=container_info['ssh_port'],
@@ -35,12 +35,12 @@ def create():
     except ValueError as e:
         return str(e), 400
     except Exception as e:
-        return f"创建VPS失败: {str(e)}", 500
+        return f"创建实例失败: {str(e)}", 500
 
-@vps.route('/remove', methods=['POST'])
+@instance.route('/remove', methods=['POST'])
 @login_required
 def remove():
-    """删除VPS"""
+    """删除实例"""
     try:
         container_id = request.form.get('container_id')
         user_id = str(session['user']['id'])
@@ -52,12 +52,12 @@ def remove():
     except ValueError as e:
         return str(e), 403
     except Exception as e:
-        return f"删除VPS失败: {str(e)}", 500
+        return f"删除实例失败: {str(e)}", 500
 
-@vps.route('/renew', methods=['POST'])
+@instance.route('/renew', methods=['POST'])
 @login_required
 def renew():
-    """续期VPS"""
+    """续期实例"""
     try:
         from datetime import datetime, timedelta
         from utils import load_config, save_config, calculate_expiry
