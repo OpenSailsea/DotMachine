@@ -1,0 +1,251 @@
+Registered routes:
+static: /static/<path:filename>
+auth.login: /login
+auth.callback: /oauth2/callback
+auth.logout: /logout
+instance.create: /instance/create
+instance.remove: /instance/remove
+instance.renew: /instance/renew
+website.add: /website/add
+website.remove: /website/remove
+website.list_websites: /website/list
+system.dashboard: /system/dashboard
+system.get_status: /system/status
+system.reset_password: /system/reset_password
+system.reset_system: /system/reset
+system.power_action: /system/power/<action>
+index.index_view: /
+terminal.terminal_view: /terminal/
+files.files_view: /files/
+files.list_files: /files/list
+files.download_file: /files/download
+files.upload_file: /files/upload
+files.create_folder: /files/create_folder
+files.delete_item: /files/delete
+files.read_file: /files/read
+files.write_file: /files/write
+[2024-12-23 15:30:39 +1100] [22051] [INFO] Starting gunicorn 21.2.0
+[2024-12-23 15:30:39 +1100] [22051] [INFO] Listening at: http://0.0.0.0:8181 (22051)
+[2024-12-23 15:30:39 +1100] [22051] [INFO] Using worker: eventlet
+[2024-12-23 15:30:39 +1100] [22115] [INFO] Booting worker with pid: 22115
+An exception was thrown while monkey_patching for eventlet. to fix this error make sure you run eventlet.monkey_patch() before importing any other modules.
+Traceback (most recent call last):
+  File "/home/cycle/dev/py/DotMachine/venv/lib/python3.12/site-packages/eventlet/patcher.py", line 473, in _upgrade_instances
+    new = upgrade_or_traverse(v)
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/cycle/dev/py/DotMachine/venv/lib/python3.12/site-packages/eventlet/patcher.py", line 450, in upgrade_or_traverse
+    _upgrade_instances(obj, klass, upgrade, visited, old_to_new)
+  File "/home/cycle/dev/py/DotMachine/venv/lib/python3.12/site-packages/eventlet/patcher.py", line 464, in _upgrade_instances
+    container_vars = vars(container)
+                     ^^^^^^^^^^^^^^^
+  File "/home/cycle/dev/py/DotMachine/venv/lib/python3.12/site-packages/werkzeug/local.py", line 311, in __get__
+    obj = instance._get_current_object()
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/cycle/dev/py/DotMachine/venv/lib/python3.12/site-packages/werkzeug/local.py", line 508, in _get_current_object
+    raise RuntimeError(unbound_message) from None
+RuntimeError: Working outside of application context.
+
+This typically means that you attempted to use functionality that needed
+the current application. To solve this, set up an application context
+with app.app_context(). See the documentation for more information.
+An exception was thrown while monkey_patching for eventlet. to fix this error make sure you run eventlet.monkey_patch() before importing any other modules.
+Traceback (most recent call last):
+  File "/home/cycle/dev/py/DotMachine/venv/lib/python3.12/site-packages/eventlet/patcher.py", line 473, in _upgrade_instances
+    new = upgrade_or_traverse(v)
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/cycle/dev/py/DotMachine/venv/lib/python3.12/site-packages/eventlet/patcher.py", line 450, in upgrade_or_traverse
+    _upgrade_instances(obj, klass, upgrade, visited, old_to_new)
+  File "/home/cycle/dev/py/DotMachine/venv/lib/python3.12/site-packages/eventlet/patcher.py", line 464, in _upgrade_instances
+    container_vars = vars(container)
+                     ^^^^^^^^^^^^^^^
+  File "/home/cycle/dev/py/DotMachine/venv/lib/python3.12/site-packages/werkzeug/local.py", line 311, in __get__
+    obj = instance._get_current_object()
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/cycle/dev/py/DotMachine/venv/lib/python3.12/site-packages/werkzeug/local.py", line 508, in _get_current_object
+    raise RuntimeError(unbound_message) from None
+RuntimeError: Working outside of application context.
+
+This typically means that you attempted to use functionality that needed
+the current application. To solve this, set up an application context
+with app.app_context(). See the documentation for more information.
+An exception was thrown while monkey_patching for eventlet. to fix this error make sure you run eventlet.monkey_patch() before importing any other modules.
+Traceback (most recent call last):
+  File "/home/cycle/dev/py/DotMachine/venv/lib/python3.12/site-packages/eventlet/patcher.py", line 473, in _upgrade_instances
+    new = upgrade_or_traverse(v)
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/cycle/dev/py/DotMachine/venv/lib/python3.12/site-packages/eventlet/patcher.py", line 450, in upgrade_or_traverse
+    _upgrade_instances(obj, klass, upgrade, visited, old_to_new)
+  File "/home/cycle/dev/py/DotMachine/venv/lib/python3.12/site-packages/eventlet/patcher.py", line 464, in _upgrade_instances
+    container_vars = vars(container)
+                     ^^^^^^^^^^^^^^^
+  File "/home/cycle/dev/py/DotMachine/venv/lib/python3.12/site-packages/werkzeug/local.py", line 311, in __get__
+    obj = instance._get_current_object()
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/cycle/dev/py/DotMachine/venv/lib/python3.12/site-packages/werkzeug/local.py", line 508, in _get_current_object
+    raise RuntimeError(unbound_message) from None
+RuntimeError: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+An exception was thrown while monkey_patching for eventlet. to fix this error make sure you run eventlet.monkey_patch() before importing any other modules.
+Traceback (most recent call last):
+  File "/home/cycle/dev/py/DotMachine/venv/lib/python3.12/site-packages/eventlet/patcher.py", line 473, in _upgrade_instances
+    new = upgrade_or_traverse(v)
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/cycle/dev/py/DotMachine/venv/lib/python3.12/site-packages/eventlet/patcher.py", line 450, in upgrade_or_traverse
+    _upgrade_instances(obj, klass, upgrade, visited, old_to_new)
+  File "/home/cycle/dev/py/DotMachine/venv/lib/python3.12/site-packages/eventlet/patcher.py", line 464, in _upgrade_instances
+    container_vars = vars(container)
+                     ^^^^^^^^^^^^^^^
+  File "/home/cycle/dev/py/DotMachine/venv/lib/python3.12/site-packages/werkzeug/local.py", line 311, in __get__
+    obj = instance._get_current_object()
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/cycle/dev/py/DotMachine/venv/lib/python3.12/site-packages/werkzeug/local.py", line 508, in _get_current_object
+    raise RuntimeError(unbound_message) from None
+RuntimeError: Working outside of application context.
+
+This typically means that you attempted to use functionality that needed
+the current application. To solve this, set up an application context
+with app.app_context(). See the documentation for more information.
+An exception was thrown while monkey_patching for eventlet. to fix this error make sure you run eventlet.monkey_patch() before importing any other modules.
+Traceback (most recent call last):
+  File "/home/cycle/dev/py/DotMachine/venv/lib/python3.12/site-packages/eventlet/patcher.py", line 473, in _upgrade_instances
+    new = upgrade_or_traverse(v)
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/cycle/dev/py/DotMachine/venv/lib/python3.12/site-packages/eventlet/patcher.py", line 450, in upgrade_or_traverse
+    _upgrade_instances(obj, klass, upgrade, visited, old_to_new)
+  File "/home/cycle/dev/py/DotMachine/venv/lib/python3.12/site-packages/eventlet/patcher.py", line 464, in _upgrade_instances
+    container_vars = vars(container)
+                     ^^^^^^^^^^^^^^^
+  File "/home/cycle/dev/py/DotMachine/venv/lib/python3.12/site-packages/werkzeug/local.py", line 311, in __get__
+    obj = instance._get_current_object()
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/cycle/dev/py/DotMachine/venv/lib/python3.12/site-packages/werkzeug/local.py", line 508, in _get_current_object
+    raise RuntimeError(unbound_message) from None
+RuntimeError: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+1 RLock(s) were not greened, to fix this error make sure you run eventlet.monkey_patch() before importing any other modules.
+[2024-12-23 15:31:08 +1100] [22051] [INFO] Handling signal: int
+[2024-12-23 15:31:09 +1100] [22115] [INFO] Worker exiting (pid: 22115)
+[2024-12-23 15:31:09 +1100] [22051] [INFO] Shutting down: Master
+[2024-12-23 15:31:14 +1100] [22314] [INFO] Starting gunicorn 21.2.0
+[2024-12-23 15:31:14 +1100] [22314] [INFO] Listening at: http://0.0.0.0:8181 (22314)
+[2024-12-23 15:31:14 +1100] [22314] [INFO] Using worker: eventlet
+[2024-12-23 15:31:14 +1100] [22363] [INFO] Booting worker with pid: 22363
+An exception was thrown while monkey_patching for eventlet. to fix this error make sure you run eventlet.monkey_patch() before importing any other modules.
+Traceback (most recent call last):
+  File "/home/cycle/dev/py/DotMachine/venv/lib/python3.12/site-packages/eventlet/patcher.py", line 473, in _upgrade_instances
+    new = upgrade_or_traverse(v)
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/cycle/dev/py/DotMachine/venv/lib/python3.12/site-packages/eventlet/patcher.py", line 450, in upgrade_or_traverse
+    _upgrade_instances(obj, klass, upgrade, visited, old_to_new)
+  File "/home/cycle/dev/py/DotMachine/venv/lib/python3.12/site-packages/eventlet/patcher.py", line 464, in _upgrade_instances
+    container_vars = vars(container)
+                     ^^^^^^^^^^^^^^^
+  File "/home/cycle/dev/py/DotMachine/venv/lib/python3.12/site-packages/werkzeug/local.py", line 311, in __get__
+    obj = instance._get_current_object()
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/cycle/dev/py/DotMachine/venv/lib/python3.12/site-packages/werkzeug/local.py", line 508, in _get_current_object
+    raise RuntimeError(unbound_message) from None
+RuntimeError: Working outside of application context.
+
+This typically means that you attempted to use functionality that needed
+the current application. To solve this, set up an application context
+with app.app_context(). See the documentation for more information.
+An exception was thrown while monkey_patching for eventlet. to fix this error make sure you run eventlet.monkey_patch() before importing any other modules.
+Traceback (most recent call last):
+  File "/home/cycle/dev/py/DotMachine/venv/lib/python3.12/site-packages/eventlet/patcher.py", line 473, in _upgrade_instances
+    new = upgrade_or_traverse(v)
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/cycle/dev/py/DotMachine/venv/lib/python3.12/site-packages/eventlet/patcher.py", line 450, in upgrade_or_traverse
+    _upgrade_instances(obj, klass, upgrade, visited, old_to_new)
+  File "/home/cycle/dev/py/DotMachine/venv/lib/python3.12/site-packages/eventlet/patcher.py", line 464, in _upgrade_instances
+    container_vars = vars(container)
+                     ^^^^^^^^^^^^^^^
+  File "/home/cycle/dev/py/DotMachine/venv/lib/python3.12/site-packages/werkzeug/local.py", line 311, in __get__
+    obj = instance._get_current_object()
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/cycle/dev/py/DotMachine/venv/lib/python3.12/site-packages/werkzeug/local.py", line 508, in _get_current_object
+    raise RuntimeError(unbound_message) from None
+RuntimeError: Working outside of application context.
+
+This typically means that you attempted to use functionality that needed
+the current application. To solve this, set up an application context
+with app.app_context(). See the documentation for more information.
+An exception was thrown while monkey_patching for eventlet. to fix this error make sure you run eventlet.monkey_patch() before importing any other modules.
+Traceback (most recent call last):
+  File "/home/cycle/dev/py/DotMachine/venv/lib/python3.12/site-packages/eventlet/patcher.py", line 473, in _upgrade_instances
+    new = upgrade_or_traverse(v)
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/cycle/dev/py/DotMachine/venv/lib/python3.12/site-packages/eventlet/patcher.py", line 450, in upgrade_or_traverse
+    _upgrade_instances(obj, klass, upgrade, visited, old_to_new)
+  File "/home/cycle/dev/py/DotMachine/venv/lib/python3.12/site-packages/eventlet/patcher.py", line 464, in _upgrade_instances
+    container_vars = vars(container)
+                     ^^^^^^^^^^^^^^^
+  File "/home/cycle/dev/py/DotMachine/venv/lib/python3.12/site-packages/werkzeug/local.py", line 311, in __get__
+    obj = instance._get_current_object()
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/cycle/dev/py/DotMachine/venv/lib/python3.12/site-packages/werkzeug/local.py", line 508, in _get_current_object
+    raise RuntimeError(unbound_message) from None
+RuntimeError: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+An exception was thrown while monkey_patching for eventlet. to fix this error make sure you run eventlet.monkey_patch() before importing any other modules.
+Traceback (most recent call last):
+  File "/home/cycle/dev/py/DotMachine/venv/lib/python3.12/site-packages/eventlet/patcher.py", line 473, in _upgrade_instances
+    new = upgrade_or_traverse(v)
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/cycle/dev/py/DotMachine/venv/lib/python3.12/site-packages/eventlet/patcher.py", line 450, in upgrade_or_traverse
+    _upgrade_instances(obj, klass, upgrade, visited, old_to_new)
+  File "/home/cycle/dev/py/DotMachine/venv/lib/python3.12/site-packages/eventlet/patcher.py", line 464, in _upgrade_instances
+    container_vars = vars(container)
+                     ^^^^^^^^^^^^^^^
+  File "/home/cycle/dev/py/DotMachine/venv/lib/python3.12/site-packages/werkzeug/local.py", line 311, in __get__
+    obj = instance._get_current_object()
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/cycle/dev/py/DotMachine/venv/lib/python3.12/site-packages/werkzeug/local.py", line 508, in _get_current_object
+    raise RuntimeError(unbound_message) from None
+RuntimeError: Working outside of application context.
+
+This typically means that you attempted to use functionality that needed
+the current application. To solve this, set up an application context
+with app.app_context(). See the documentation for more information.
+An exception was thrown while monkey_patching for eventlet. to fix this error make sure you run eventlet.monkey_patch() before importing any other modules.
+Traceback (most recent call last):
+  File "/home/cycle/dev/py/DotMachine/venv/lib/python3.12/site-packages/eventlet/patcher.py", line 473, in _upgrade_instances
+    new = upgrade_or_traverse(v)
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/cycle/dev/py/DotMachine/venv/lib/python3.12/site-packages/eventlet/patcher.py", line 450, in upgrade_or_traverse
+    _upgrade_instances(obj, klass, upgrade, visited, old_to_new)
+  File "/home/cycle/dev/py/DotMachine/venv/lib/python3.12/site-packages/eventlet/patcher.py", line 464, in _upgrade_instances
+    container_vars = vars(container)
+                     ^^^^^^^^^^^^^^^
+  File "/home/cycle/dev/py/DotMachine/venv/lib/python3.12/site-packages/werkzeug/local.py", line 311, in __get__
+    obj = instance._get_current_object()
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/cycle/dev/py/DotMachine/venv/lib/python3.12/site-packages/werkzeug/local.py", line 508, in _get_current_object
+    raise RuntimeError(unbound_message) from None
+RuntimeError: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+1 RLock(s) were not greened, to fix this error make sure you run eventlet.monkey_patch() before importing any other modules.
+[2024-12-23 15:33:02 +1100] [22363] [ERROR] Error handling request /oauth2/callback?code=lRIH80EwURDb7F09KayjtYngqEvDZmh9&state=5haBvre2ubfeTz7fmwmGD9dDDQXF1a
+Traceback (most recent call last):
+  File "/home/cycle/dev/py/DotMachine/venv/lib/python3.12/site-packages/gunicorn/workers/base_async.py", line 55, in handle
+    self.handle_request(listener_name, req, client, addr)
+  File "/home/cycle/dev/py/DotMachine/venv/lib/python3.12/site-packages/gunicorn/workers/base_async.py", line 108, in handle_request
+    respiter = self.wsgi(environ, resp.start_response)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: create_app() takes 0 positional arguments but 2 were given
+[2024-12-23 16:23:55 +1100] [22314] [INFO] Handling signal: int
+[2024-12-23 16:23:55 +1100] [22363] [INFO] Worker exiting (pid: 22363)
+[2024-12-23 16:23:55 +1100] [22314] [ERROR] Worker (pid:22363) was sent SIGINT!
+[2024-12-23 16:23:55 +1100] [22314] [INFO] Shutting down: Master

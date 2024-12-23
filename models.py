@@ -20,9 +20,21 @@ class DockerManager:
     def __init__(self):
         pass
 
-    def create_container(self, container_id: int, username: str, password: str, container_type: str = 'base', user_id: str = None) -> str:
-        """创建新容器"""
-        container_name = get_container_name(container_id)
+    def create_container(self, container_id: int, username: str, password: str, container_type: str = 'base', user_id: str = None) -> Tuple[str, int]:
+        """创建新容器,返回(容器名称, 实际使用的ID)"""
+        while True:
+            container_name = get_container_name(container_id)
+            # 检查容器是否已存在
+            try:
+                subprocess.run(['sudo', 'docker', 'inspect', container_name], 
+                             check=True, capture_output=True)
+                # 容器已存在,尝试下一个ID
+                container_id += 1
+                continue
+            except subprocess.CalledProcessError:
+                # 容器不存在,可以使用这个名称
+                break
+                
         image_name = f'dotmachine-{container_type}'
         ports = get_container_ports(container_id)
         data_dir = ensure_data_dir(container_id)
@@ -68,7 +80,7 @@ class DockerManager:
             subprocess.run(['sudo', 'docker', 'exec', container_name, 'sh', '-c', f'cat /tmp/bashecho >> /home/{username}/.bashrc'], check=True)
             subprocess.run(['sudo', 'docker', 'exec', container_name, 'rm', '/tmp/bashecho'], check=True)
         
-        return container_name
+        return container_name, container_id
 
     def remove_container(self, container_name: str) -> None:
         """删除容器"""
@@ -160,11 +172,12 @@ class ContainerManager:
 
         # 生成容器信息
         container_id = config['next_id']
+        original_id = container_id  # 保存原始ID用于后续更新
         from utils import generate_password
         password = generate_password()
         
-        # 创建容器
-        container = self.docker.create_container(
+        # 创建容器并获取实际使用的容器名称和ID
+        container_name, actual_id = self.docker.create_container(
             container_id=container_id,
             username=username,
             password=password,
@@ -173,9 +186,9 @@ class ContainerManager:
         )
         
         # 更新配置
-        ports = get_container_ports(container_id)
+        ports = get_container_ports(actual_id)
         container_info = {
-            'name': get_container_name(container_id),
+            'name': container_name,  # 使用实际返回的容器名称
             'username': username,
             'password': password,
             'user_id': user_id,
@@ -186,8 +199,8 @@ class ContainerManager:
             'expires_at': calculate_expiry()
         }
         
-        config['containers'][str(container_id)] = container_info
-        config['next_id'] = container_id + 1
+        config['containers'][str(actual_id)] = container_info
+        config['next_id'] = actual_id + 1
         save_config(config)
         
         return container_info, password
