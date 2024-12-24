@@ -40,74 +40,103 @@ class DockerManager:
     def __init__(self):
         pass
 
+    def cleanup_docker_network(self):
+        """清理Docker网络设置"""
+        try:
+            # 停止所有容器
+            subprocess.run(['sudo', 'docker', 'stop', '$(sudo docker ps -aq)'], 
+                         shell=True, check=False)
+            # 删除所有容器
+            subprocess.run(['sudo', 'docker', 'rm', '$(sudo docker ps -aq)'], 
+                         shell=True, check=False)
+            # 清理网络
+            subprocess.run(['sudo', 'docker', 'network', 'prune', '-f'], 
+                         check=True)
+            # 重启Docker服务
+            subprocess.run(['sudo', 'systemctl', 'restart', 'docker'], 
+                         check=True)
+        except subprocess.CalledProcessError:
+            pass
+
     def create_container(self, container_id: int, username: str, password: str, container_type: str = 'base', user_id: str = None) -> Tuple[str, int]:
         """创建新容器,返回(容器名称, 实际使用的ID)"""
-        container_name = get_container_name(container_id)
-        
-        # 检查容器是否已存在
         try:
-            subprocess.run(['sudo', 'docker', 'inspect', container_name], 
-                         check=True, capture_output=True)
-            # 如果容器存在，先删除它
-            self.remove_container(container_name)
-        except subprocess.CalledProcessError:
-            pass  # 容器不存在，可以直接创建
+            container_name = get_container_name(container_id)
+            
+            # 检查容器是否已存在
+            try:
+                subprocess.run(['sudo', 'docker', 'inspect', container_name], 
+                             check=True, capture_output=True)
+                # 如果容器存在，先删除它
+                self.remove_container(container_name)
+            except subprocess.CalledProcessError:
+                pass  # 容器不存在，可以直接创建
+                    
+            image_name = f'dotmachine-{container_type}'
+            ports = get_container_ports(container_id)
+            data_dir = ensure_data_dir(container_id)
+
+            # 确保镜像存在
+            try:
+                subprocess.run(['sudo', 'docker', 'image', 'inspect', image_name], check=True, capture_output=True)
+            except subprocess.CalledProcessError:
+                subprocess.run(['sudo', 'docker', 'build', '-t', image_name, '-f', f'Dockerfile.{container_type}', '.'], check=True)
+
+            # 创建并启动容器
+            cmd = [
+                'sudo', 'docker', 'run', '-d',
+                '--name', container_name,
+                '--privileged',  # 添加特权模式
+                '--cap-add=NET_ADMIN',  # 添加网络管理权限
+                '--cap-add=NET_RAW',    # 添加原始网络权限
+                '-p', f'127.0.0.1:{ports["ssh_port"]}:22',  # 限制SSH只能从本地访问
+                '-p', f'127.0.0.1:{ports["ftp_port"]}:21',  # 限制FTP只能从本地访问
+                '-p', f'{ports["http_port"]}:9000',         # Web端口可以从外部访问
+                '-v', f'{os.path.abspath(data_dir)}:/data:rw',
+                '--cpu-period', str(CONTAINER_LIMITS["cpu_period"]),
+                '--cpu-quota', str(CONTAINER_LIMITS["cpu_quota"]),
+                '--memory', CONTAINER_LIMITS["mem_limit"].replace('m', 'M'),
+                '-e', f'CONTAINER_USER={username}',
+                '-e', f'CONTAINER_PASSWORD={password}',
+                image_name
+            ]
+
+            try:
+                subprocess.run(cmd, check=True)
+            except subprocess.CalledProcessError as e:
+                # 如果创建失败，尝试清理Docker网络并重试
+                self.cleanup_docker_network()
+                subprocess.run(cmd, check=True)
+
+            # 在容器中创建用户
+            subprocess.run(['sudo', 'docker', 'exec', container_name, '/usr/local/bin/create_user.sh', username, password], check=True)
+            
+            # 修改用户的.bashrc
+            if os.path.exists('.bashecho'):
+                with open('.bashecho', 'r') as f:
+                    bashecho_content = f.read()
                 
-        image_name = f'dotmachine-{container_type}'
-        ports = get_container_ports(container_id)
-        data_dir = ensure_data_dir(container_id)
-
-        # 确保镜像存在
-        try:
-            subprocess.run(['sudo', 'docker', 'image', 'inspect', image_name], check=True, capture_output=True)
-        except subprocess.CalledProcessError:
-            subprocess.run(['sudo', 'docker', 'build', '-t', image_name, '-f', f'Dockerfile.{container_type}', '.'], check=True)
-
-        # 创建并启动容器
-        cmd = [
-            'sudo', 'docker', 'run', '-d',
-            '--name', container_name,
-            '--privileged',  # 添加特权模式
-            '--cap-add=NET_ADMIN',  # 添加网络管理权限
-            '--cap-add=NET_RAW',    # 添加原始网络权限
-            '-p', f'127.0.0.1:{ports["ssh_port"]}:22',  # 限制SSH只能从本地访问
-            '-p', f'127.0.0.1:{ports["ftp_port"]}:21',  # 限制FTP只能从本地访问
-            '-p', f'{ports["http_port"]}:9000',         # Web端口可以从外部访问
-            '-v', f'{os.path.abspath(data_dir)}:/data:rw',
-            '--cpu-period', str(CONTAINER_LIMITS["cpu_period"]),
-            '--cpu-quota', str(CONTAINER_LIMITS["cpu_quota"]),
-            '--memory', CONTAINER_LIMITS["mem_limit"].replace('m', 'M'),
-            '-e', f'CONTAINER_USER={username}',
-            '-e', f'CONTAINER_PASSWORD={password}',
-            image_name
-        ]
-
-        subprocess.run(cmd, check=True)
-
-        # 在容器中创建用户
-        subprocess.run(['sudo', 'docker', 'exec', container_name, '/usr/local/bin/create_user.sh', username, password], check=True)
-        
-        # 修改用户的.bashrc
-        if os.path.exists('.bashecho'):
-            with open('.bashecho', 'r') as f:
-                bashecho_content = f.read()
+                # 将bashecho内容写入临时文件
+                with open('/tmp/container_bashecho', 'w') as f:
+                    f.write(bashecho_content)
+                
+                # 复制文件到容器
+                subprocess.run(['sudo', 'docker', 'cp', '/tmp/container_bashecho', f'{container_name}:/tmp/bashecho'], check=True)
+                
+                # 添加到.bashrc
+                subprocess.run(['sudo', 'docker', 'exec', container_name, 'bash', '-c', 'echo "\n# DotMachine welcome message" >> /home/$CONTAINER_USER/.bashrc'], check=True)
+                subprocess.run(['sudo', 'docker', 'exec', container_name, 'bash', '-c', 'cat /tmp/bashecho >> /home/$CONTAINER_USER/.bashrc'], check=True)
+                subprocess.run(['sudo', 'docker', 'exec', container_name, 'rm', '/tmp/bashecho'], check=True)
+                
+                # 清理本地临时文件
+                os.remove('/tmp/container_bashecho')
             
-            # 将bashecho内容写入临时文件
-            with open('/tmp/container_bashecho', 'w') as f:
-                f.write(bashecho_content)
+            return container_name, container_id
             
-            # 复制文件到容器
-            subprocess.run(['sudo', 'docker', 'cp', '/tmp/container_bashecho', f'{container_name}:/tmp/bashecho'], check=True)
-            
-            # 添加到.bashrc
-            subprocess.run(['sudo', 'docker', 'exec', container_name, 'bash', '-c', 'echo "\n# DotMachine welcome message" >> /home/$CONTAINER_USER/.bashrc'], check=True)
-            subprocess.run(['sudo', 'docker', 'exec', container_name, 'bash', '-c', 'cat /tmp/bashecho >> /home/$CONTAINER_USER/.bashrc'], check=True)
-            subprocess.run(['sudo', 'docker', 'exec', container_name, 'rm', '/tmp/bashecho'], check=True)
-            
-            # 清理本地临时文件
-            os.remove('/tmp/container_bashecho')
-        
-        return container_name, container_id
+        except Exception as e:
+            # 如果发生任何错误，尝试清理并重新抛出异常
+            self.cleanup_docker_network()
+            raise e
 
     def remove_container(self, container_name: str) -> None:
         """删除容器"""
