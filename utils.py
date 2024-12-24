@@ -63,11 +63,11 @@ def save_config(config: Dict) -> None:
 
 def get_container_ports(container_id: int) -> Dict[str, int]:
     """获取容器端口映射"""
-    from config import BASE_HTTP_PORT, SSH_PORT
+    from config import BASE_HTTP_PORT, BASE_SSH_PORT, BASE_FTP_PORT
     return {
-        'http_port': BASE_HTTP_PORT + container_id,  # 每个用户独立的Web端口
-        'ssh_port': SSH_PORT,  # 所有用户共用的SSH端口
-        'ftp_port': SSH_PORT   # 所有用户共用的FTP端口
+        'http_port': BASE_HTTP_PORT + container_id,
+        'ssh_port': BASE_SSH_PORT + container_id,
+        'ftp_port': BASE_FTP_PORT + container_id
     }
 
 def validate_user_container(config: Dict, container_id: str, user_id: str) -> bool:

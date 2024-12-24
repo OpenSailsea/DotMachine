@@ -89,9 +89,9 @@ class DockerManager:
                 '--privileged',  # 添加特权模式
                 '--cap-add=NET_ADMIN',  # 添加网络管理权限
                 '--cap-add=NET_RAW',    # 添加原始网络权限
-                '-p', f'127.0.0.1:{ports["ssh_port"]}:22',  # 限制SSH只能从本地访问
-                '-p', f'127.0.0.1:{ports["ftp_port"]}:21',  # 限制FTP只能从本地访问
-                '-p', f'{ports["http_port"]}:9000',         # Web端口可以从外部访问
+                '-p', f'{ports["ssh_port"]}:22',
+                '-p', f'{ports["ftp_port"]}:21',
+                '-p', f'{ports["http_port"]}:9000',
                 '-v', f'{os.path.abspath(data_dir)}:/data:rw',
                 '--cpu-period', str(CONTAINER_LIMITS["cpu_period"]),
                 '--cpu-quota', str(CONTAINER_LIMITS["cpu_quota"]),
