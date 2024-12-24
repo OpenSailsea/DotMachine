@@ -9,6 +9,8 @@ import subprocess
 import sys
 from rich.console import Console
 from rich.table import Table
+from datetime import datetime
+from utils import load_config, save_config, calculate_expiry
 
 console = Console()
 
@@ -133,15 +135,7 @@ BASE_HTTP_PORT = 4000
 BASE_SSH_PORT = 4100
 BASE_FTP_PORT = 4200
 
-def load_config():
-    if os.path.exists(CONFIG_FILE):
-        with open(CONFIG_FILE, 'r') as f:
-            return json.load(f)
-    return {'containers': {}, 'next_id': 1}
-
-def save_config(config):
-    with open(CONFIG_FILE, 'w') as f:
-        json.dump(config, f, indent=2)
+from utils import load_config, save_config
 
 def build_image(image_type='base'):
     console.print(f"构建{image_type}镜像中...", style="yellow")
@@ -242,12 +236,17 @@ def create(username, password, type, cpu, memory):
     container.exec_run(['/usr/local/bin/create_user.sh', username, password])
 
     # 更新配置
-    config['containers'][container_id] = {
+    config['containers'][str(container_id)] = {
         'name': container_name,
         'username': username,
+        'password': password,
+        'type': type,
         'http_port': BASE_HTTP_PORT + container_id,
         'ssh_port': BASE_SSH_PORT + container_id,
-        'ftp_port': BASE_FTP_PORT + container_id
+        'ftp_port': BASE_FTP_PORT + container_id,
+        'websites': [],
+        'created_at': datetime.utcnow().isoformat() + 'Z',
+        'expires_at': calculate_expiry()
     }
     config['next_id'] = container_id + 1
     save_config(config)

@@ -9,7 +9,7 @@ TOKEN_URL = "https://connect.linux.do/oauth2/token"
 USER_INFO_URL = "https://connect.linux.do/api/user"
 
 # Flask配置
-SECRET_KEY = os.urandom(24)
+SECRET_KEY = b'_5#y2L"F4Q8z\n\xec]/'  # 固定的密钥，用于会话签名
 DEBUG = True
 HOST = '0.0.0.0'
 PORT = 8002

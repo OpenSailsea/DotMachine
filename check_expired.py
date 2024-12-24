@@ -4,16 +4,7 @@ import os
 from datetime import datetime
 from dotmachine import DockerWrapper, get_container_name
 
-def load_config():
-    config_file = 'containers.json'
-    if os.path.exists(config_file):
-        with open(config_file, 'r') as f:
-            return json.load(f)
-    return {'containers': {}, 'next_id': 1}
-
-def save_config(config):
-    with open('containers.json', 'w') as f:
-        json.dump(config, f, indent=2)
+from utils import load_config, save_config
 
 def check_and_remove_expired():
     config = load_config()

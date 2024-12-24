@@ -43,7 +43,12 @@ def load_config() -> Dict:
         with open('containers.json', 'r') as f:
             return json.loads(f.read())
     except FileNotFoundError:
-        return {'containers': {}, 'next_id': 0}
+        return {
+            'containers': {},
+            'next_id': 1,
+            'max_machines': 30,
+            'used_ports': []
+        }
 
 def save_config(config: Dict) -> None:
     """保存配置文件"""

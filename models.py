@@ -203,16 +203,18 @@ class ContainerManager:
 
         # 查找可用的container_id
         container_id = None
-        # 先检查已有的配置
-        for i in range(MAX_MACHINES):
-            # 检查是否有对应的数据目录
-            data_dir = os.path.join('data/containers', str(i))
-            if os.path.exists(data_dir) and str(i) not in config['containers']:
-                container_id = i
-                break
-                
-        # 如果没有找到可用的已存在目录，使用next_id
-        if container_id is None:
+        existing_ids = set(int(cid) for cid in config['containers'].keys())
+        
+        # 如果next_id已经被使用，找到一个未使用的ID
+        if config['next_id'] in existing_ids:
+            # 从1开始查找第一个未使用的ID
+            for i in range(1, MAX_MACHINES + 1):
+                if i not in existing_ids:
+                    container_id = i
+                    break
+            if container_id is None:
+                raise ValueError(f"没有可用的容器ID")
+        else:
             container_id = config['next_id']
             
         from utils import generate_password
