@@ -5,11 +5,41 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 # 安装基本工具
 RUN apt-get update && apt-get install -y \
+    build-essential \
+    htop \
+    net-tools \
+    iputils-ping \
+    bash-completion \
     openssh-server \
     vsftpd \
     nginx \
     iptables \
+    rsync \
     curl \
+    wget \
+    vim \
+    nano \
+    zsh \
+    unzip \
+    zip \
+    tar \
+    xz-utils \
+    psmisc \
+    lsof \
+    tree \
+    jq \
+    usbutils \
+    pciutils \
+    dmidecode \
+    traceroute \
+    dnsutils \
+    nmap \
+    netcat \
+    ntp \
+    tzdata \
+    man-db \
+    less \
+    locales \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
