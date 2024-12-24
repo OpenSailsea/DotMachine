@@ -12,7 +12,13 @@ def generate_password(length: int = 12) -> str:
 
 def get_container_name(container_id: int) -> str:
     """根据容器ID生成容器名称"""
-    return f"dotm-{container_id:04d}"
+    from config import CONTAINER_NAME_FORMAT
+    return CONTAINER_NAME_FORMAT.format(id=container_id)
+
+def get_username(username: str) -> str:
+    """根据用户名生成实例用户名"""
+    from config import USERNAME_FORMAT
+    return USERNAME_FORMAT.format(username=username)
 
 def validate_domain(domain: str) -> bool:
     """验证域名格式"""
@@ -57,11 +63,11 @@ def save_config(config: Dict) -> None:
 
 def get_container_ports(container_id: int) -> Dict[str, int]:
     """获取容器端口映射"""
-    from config import BASE_HTTP_PORT, BASE_SSH_PORT, BASE_FTP_PORT
+    from config import BASE_HTTP_PORT, SSH_PORT
     return {
-        'http_port': BASE_HTTP_PORT + container_id,
-        'ssh_port': BASE_SSH_PORT + container_id,
-        'ftp_port': BASE_FTP_PORT + container_id
+        'http_port': BASE_HTTP_PORT + container_id,  # 每个用户独立的Web端口
+        'ssh_port': SSH_PORT,  # 所有用户共用的SSH端口
+        'ftp_port': SSH_PORT   # 所有用户共用的FTP端口
     }
 
 def validate_user_container(config: Dict, container_id: str, user_id: str) -> bool:

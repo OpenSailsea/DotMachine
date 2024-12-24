@@ -1,7 +1,7 @@
 from flask import Blueprint, request, redirect, url_for, render_template, session
 from auth import login_required
 from models import ContainerManager
-from utils import validate_user_container
+from utils import validate_user_container, get_username
 
 instance = Blueprint('instance', __name__, url_prefix='/instance')
 container_manager = ContainerManager()
@@ -13,7 +13,7 @@ def create():
     try:
         container_type = request.form.get('type', 'base')
         user_id = str(session['user']['id'])
-        username = f"dotm-{session['user']['username']}"
+        username = get_username(session['user']['username'])
         
         # 创建容器
         container_info, password = container_manager.create_container(
